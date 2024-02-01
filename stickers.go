@@ -173,8 +173,8 @@ func (b *Bot) SetStickerSetThumbnail(to Recipient, file File, s StickerSet) erro
 }
 
 // Use this method to set the title of a created sticker set. Returns True on success.
-func (b *Bot) SetStickerSetTitle(to Recipient, title string, s StickerSet) error {
-	_, err := b.Raw("setStickerSetTitle", map[string]string{"name": s.Name, "title": title})
+func (b *Bot) SetStickerSetTitle(to Recipient, title string, name string) error {
+	_, err := b.Raw("setStickerSetTitle", map[string]string{"name": name, "title": title})
 	return err
 }
 
