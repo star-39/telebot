@@ -1,4 +1,4 @@
-module github.com/star-39/telebot
+module github.com/star-39/telebot/v99
 
 go 1.13
 
