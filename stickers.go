@@ -3,6 +3,7 @@ package telebot
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 )
 
 type StickerSetType = string
@@ -32,6 +33,7 @@ type StickerSet struct {
 }
 
 type InputSticker struct {
+	//if starts with file:// , treat it as local file, otherwise, fileID
 	Sticker string   `json:"sticker"`
 	Emojis  []string `json:"emoji_list"`
 	// MaskPosition MaskPosition `json:"mask_position"`
@@ -100,31 +102,50 @@ func (b *Bot) StickerSet(name string) (*StickerSet, error) {
 // CreateStickerSet creates a new sticker set.
 // *File in InputStickers must be uploaded first!
 func (b *Bot) CreateStickerSet(to Recipient, format string, inputs []InputSticker, s StickerSet) error {
+	var hasLocalFile bool
+	stickerFilesMap := make(map[string]File)
+	for index, input := range inputs {
+		// Upload as attach://
+		if strings.HasPrefix(input.Sticker, "file://") {
+			filePath := strings.TrimPrefix(input.Sticker, "file://")
+			fileIdentifier := "sticker" + strconv.Itoa(index)
+			inputs[index].Sticker = "attach://" + fileIdentifier
+			stickerFilesMap[fileIdentifier] = File{FileLocal: filePath}
+			hasLocalFile = true
+		}
+	}
 	inputStickers, _ := json.Marshal(inputs)
 	params := map[string]string{
-		"stickers":       string(inputStickers),
-		"user_id":        to.Recipient(),
-		"sticker_type":   s.Type,
-		"sticker_format": format,
-		"name":           s.Name,
-		"title":          s.Title,
-		// "emojis":       s.Emojis,
-		// "contains_masks":   strconv.FormatBool(s.ContainsMasks),
+		"stickers":         string(inputStickers),
+		"user_id":          to.Recipient(),
+		"sticker_type":     s.Type,
+		"sticker_format":   format,
+		"name":             s.Name,
+		"title":            s.Title,
 		"needs_repainting": strconv.FormatBool(s.NeedsRepainting),
 	}
 
-	// if s.MaskPosition != nil {
-	// 	data, _ := json.Marshal(&s.MaskPosition)
-	// 	params["mask_position"] = string(data)
-	// }
-
-	_, err := b.Raw("createNewStickerSet", params)
+	var err error
+	if hasLocalFile {
+		_, err = b.sendFiles("createNewStickerSet", stickerFilesMap, params)
+	} else {
+		_, err = b.Raw("createNewStickerSet", params)
+	}
 	return err
 }
 
 // AddSticker adds a new sticker to the existing sticker set.
 // For fields in StickerSet, only Name is required.
 func (b *Bot) AddSticker(to Recipient, input InputSticker, s StickerSet) error {
+	var hasLocalFile bool
+	stickerFilesMap := make(map[string]File)
+	if strings.HasPrefix(input.Sticker, "file://") {
+		filePath := strings.TrimPrefix(input.Sticker, "file://")
+		fileIdentifier := "sticker00"
+		input.Sticker = "attach://" + fileIdentifier
+		stickerFilesMap[fileIdentifier] = File{FileLocal: filePath}
+		hasLocalFile = true
+	}
 	inputSticker, _ := json.Marshal(input)
 	params := map[string]string{
 		"sticker": string(inputSticker),
@@ -132,7 +153,12 @@ func (b *Bot) AddSticker(to Recipient, input InputSticker, s StickerSet) error {
 		"name":    s.Name,
 	}
 
-	_, err := b.Raw("addStickerToSet", params)
+	var err error
+	if hasLocalFile {
+		_, err = b.sendFiles("addStickerToSet", stickerFilesMap, params)
+	} else {
+		_, err = b.Raw("addStickerToSet", params)
+	}
 	return err
 }
 
