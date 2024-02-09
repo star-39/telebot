@@ -32,6 +32,14 @@ type StickerSet struct {
 	NeedsRepainting bool          `json:"needs_repainting"`
 }
 
+func (ss StickerSet) Format() string {
+	if ss.Video {
+		return "video"
+	} else {
+		return "static"
+	}
+}
+
 type InputSticker struct {
 	//if starts with file:// , treat it as local file, otherwise, fileID
 	Sticker string   `json:"sticker"`
@@ -100,8 +108,9 @@ func (b *Bot) StickerSet(name string) (*StickerSet, error) {
 }
 
 // CreateStickerSet creates a new sticker set.
+// StickerSet should include Type, Title, Name. Format will be guessed automatically.
 // If InputFile in InputSticker starts with file:// , treat as local file.
-func (b *Bot) CreateStickerSet(to Recipient, inputs []InputSticker, settype string, format string, name string, title string) error {
+func (b *Bot) CreateStickerSet(to Recipient, inputs []InputSticker, ss StickerSet) error {
 	var hasLocalFile bool
 	stickerFilesMap := make(map[string]File)
 	for index, input := range inputs {
@@ -118,10 +127,10 @@ func (b *Bot) CreateStickerSet(to Recipient, inputs []InputSticker, settype stri
 	params := map[string]string{
 		"stickers":       string(inputStickers),
 		"user_id":        to.Recipient(),
-		"sticker_type":   settype,
-		"sticker_format": format,
-		"name":           name,
-		"title":          title,
+		"sticker_type":   ss.Type,
+		"sticker_format": ss.Format(),
+		"name":           ss.Name,
+		"title":          ss.Title,
 	}
 
 	var err error
@@ -134,8 +143,9 @@ func (b *Bot) CreateStickerSet(to Recipient, inputs []InputSticker, settype stri
 }
 
 // AddSticker adds a new sticker to the existing sticker set.
+// StickerSet only requires Name.
 // If InputFile in InputSticker starts with file:// , treat as local file.
-func (b *Bot) AddSticker(to Recipient, input InputSticker, name string) error {
+func (b *Bot) AddSticker(to Recipient, input InputSticker, ss StickerSet) error {
 	var hasLocalFile bool
 	stickerFilesMap := make(map[string]File)
 	if strings.HasPrefix(input.Sticker, "file://") {
@@ -149,7 +159,7 @@ func (b *Bot) AddSticker(to Recipient, input InputSticker, name string) error {
 	params := map[string]string{
 		"sticker": string(inputSticker),
 		"user_id": to.Recipient(),
-		"name":    name,
+		"name":    ss.Name,
 	}
 
 	var err error
