@@ -40,6 +40,15 @@ func (ss StickerSet) Format() string {
 	}
 }
 
+// Determine whether is CustomEmoji by Type.
+func (ss StickerSet) IsCustomEmoji() bool {
+	if ss.Type == StickerCustomEmoji {
+		return true
+	} else {
+		return false
+	}
+}
+
 type InputSticker struct {
 	//if starts with file:// , treat it as local file, otherwise, fileID
 	Sticker string   `json:"sticker"`
