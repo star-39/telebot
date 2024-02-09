@@ -100,8 +100,8 @@ func (b *Bot) StickerSet(name string) (*StickerSet, error) {
 }
 
 // CreateStickerSet creates a new sticker set.
-// *File in InputStickers must be uploaded first!
-func (b *Bot) CreateStickerSet(to Recipient, format string, inputs []InputSticker, s StickerSet) error {
+// If InputFile in InputSticker starts with file:// , treat as local file.
+func (b *Bot) CreateStickerSet(to Recipient, inputs []InputSticker, settype string, format string, name string, title string) error {
 	var hasLocalFile bool
 	stickerFilesMap := make(map[string]File)
 	for index, input := range inputs {
@@ -116,13 +116,12 @@ func (b *Bot) CreateStickerSet(to Recipient, format string, inputs []InputSticke
 	}
 	inputStickers, _ := json.Marshal(inputs)
 	params := map[string]string{
-		"stickers":         string(inputStickers),
-		"user_id":          to.Recipient(),
-		"sticker_type":     s.Type,
-		"sticker_format":   format,
-		"name":             s.Name,
-		"title":            s.Title,
-		"needs_repainting": strconv.FormatBool(s.NeedsRepainting),
+		"stickers":       string(inputStickers),
+		"user_id":        to.Recipient(),
+		"sticker_type":   settype,
+		"sticker_format": format,
+		"name":           name,
+		"title":          title,
 	}
 
 	var err error
@@ -135,8 +134,8 @@ func (b *Bot) CreateStickerSet(to Recipient, format string, inputs []InputSticke
 }
 
 // AddSticker adds a new sticker to the existing sticker set.
-// For fields in StickerSet, only Name is required.
-func (b *Bot) AddSticker(to Recipient, input InputSticker, s StickerSet) error {
+// If InputFile in InputSticker starts with file:// , treat as local file.
+func (b *Bot) AddSticker(to Recipient, input InputSticker, name string) error {
 	var hasLocalFile bool
 	stickerFilesMap := make(map[string]File)
 	if strings.HasPrefix(input.Sticker, "file://") {
@@ -150,7 +149,7 @@ func (b *Bot) AddSticker(to Recipient, input InputSticker, s StickerSet) error {
 	params := map[string]string{
 		"sticker": string(inputSticker),
 		"user_id": to.Recipient(),
-		"name":    s.Name,
+		"name":    name,
 	}
 
 	var err error
