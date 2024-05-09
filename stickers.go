@@ -16,13 +16,13 @@ const (
 
 // StickerSet represents a sticker set.
 type StickerSet struct {
-	Type      StickerSetType `json:"sticker_type"`
-	Name      string         `json:"name"`
-	Title     string         `json:"title"`
-	Animated  bool           `json:"is_animated"`
-	Video     bool           `json:"is_video"`
-	Stickers  []Sticker      `json:"stickers"`
-	Thumbnail *Photo         `json:"thumb"`
+	Type  StickerSetType `json:"sticker_type"`
+	Name  string         `json:"name"`
+	Title string         `json:"title"`
+	//Animated  bool           `json:"is_animated"`
+	// Video     bool      `json:"is_video"`
+	Stickers  []Sticker `json:"stickers"`
+	Thumbnail *Photo    `json:"thumb"`
 	// PNG             *File          `json:"png_sticker"`
 	// TGS             *File          `json:"tgs_sticker"`
 	// WebM            *File          `json:"webm_sticker"`
@@ -32,13 +32,13 @@ type StickerSet struct {
 	NeedsRepainting bool          `json:"needs_repainting"`
 }
 
-func (ss StickerSet) Format() string {
-	if ss.Video {
-		return "video"
-	} else {
-		return "static"
-	}
-}
+// func (ss StickerSet) Format() string {
+// 	if ss.Video {
+// 		return "video"
+// 	} else {
+// 		return "static"
+// 	}
+// }
 
 // Determine whether is CustomEmoji by Type.
 func (ss StickerSet) IsCustomEmoji() bool {
@@ -55,6 +55,7 @@ type InputSticker struct {
 	Emojis  []string `json:"emoji_list"`
 	// MaskPosition MaskPosition `json:"mask_position"`
 	Keywords []string `json:"keywords"`
+	Format   []string `json:"format"`
 }
 
 // MaskPosition describes the position on faces where
@@ -134,12 +135,11 @@ func (b *Bot) CreateStickerSet(to Recipient, inputs []InputSticker, ss StickerSe
 	}
 	inputStickers, _ := json.Marshal(inputs)
 	params := map[string]string{
-		"stickers":       string(inputStickers),
-		"user_id":        to.Recipient(),
-		"sticker_type":   ss.Type,
-		"sticker_format": ss.Format(),
-		"name":           ss.Name,
-		"title":          ss.Title,
+		"stickers":     string(inputStickers),
+		"user_id":      to.Recipient(),
+		"sticker_type": ss.Type,
+		"name":         ss.Name,
+		"title":        ss.Title,
 	}
 
 	var err error
