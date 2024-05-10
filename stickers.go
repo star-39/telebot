@@ -55,7 +55,7 @@ type InputSticker struct {
 	Emojis  []string `json:"emoji_list"`
 	// MaskPosition MaskPosition `json:"mask_position"`
 	Keywords []string `json:"keywords"`
-	Format   []string `json:"format"`
+	Format   string   `json:"format"`
 }
 
 // MaskPosition describes the position on faces where
