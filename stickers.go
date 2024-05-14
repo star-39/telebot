@@ -118,9 +118,8 @@ func (b *Bot) StickerSet(name string) (*StickerSet, error) {
 }
 
 // CreateStickerSet creates a new sticker set.
-// StickerSet should include Type, Title, Name. Format will be guessed automatically.
 // If InputFile in InputSticker starts with file:// , treat as local file.
-func (b *Bot) CreateStickerSet(to Recipient, inputs []InputSticker, ss StickerSet) error {
+func (b *Bot) CreateStickerSet(to Recipient, inputs []InputSticker, name string, title string, stickerType string) error {
 	var hasLocalFile bool
 	stickerFilesMap := make(map[string]File)
 	for index, input := range inputs {
@@ -137,9 +136,9 @@ func (b *Bot) CreateStickerSet(to Recipient, inputs []InputSticker, ss StickerSe
 	params := map[string]string{
 		"stickers":     string(inputStickers),
 		"user_id":      to.Recipient(),
-		"sticker_type": ss.Type,
-		"name":         ss.Name,
-		"title":        ss.Title,
+		"sticker_type": stickerType,
+		"name":         name,
+		"title":        title,
 	}
 
 	var err error
@@ -152,9 +151,8 @@ func (b *Bot) CreateStickerSet(to Recipient, inputs []InputSticker, ss StickerSe
 }
 
 // AddSticker adds a new sticker to the existing sticker set.
-// StickerSet only requires Name.
 // If InputFile in InputSticker starts with file:// , treat as local file.
-func (b *Bot) AddSticker(to Recipient, input InputSticker, ss StickerSet) error {
+func (b *Bot) AddSticker(to Recipient, input InputSticker, name string) error {
 	var hasLocalFile bool
 	stickerFilesMap := make(map[string]File)
 	if strings.HasPrefix(input.Sticker, "file://") {
@@ -168,7 +166,7 @@ func (b *Bot) AddSticker(to Recipient, input InputSticker, ss StickerSet) error 
 	params := map[string]string{
 		"sticker": string(inputSticker),
 		"user_id": to.Recipient(),
-		"name":    ss.Name,
+		"name":    name,
 	}
 
 	var err error
